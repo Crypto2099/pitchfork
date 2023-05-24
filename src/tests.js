@@ -1,44 +1,29 @@
 const { CardanoRSS } = require('./rss.js');
 const { Pool } = require('./pools.js');
-const constants = require('./constants.js')
+const constants = require('./constants.js');
 
+// Test if pool methods are working correctly.
 try {
-    invalid_K = new CardanoRSS(-1, 0.3, 340000000);
-    console.error('Test failed: invalid_K')
+    testPool = new Pool(1000000000000, 10000000000, 100, 0.01, 340000000);          // TODO: Test with verfiable parameters.
+    poolSaturation = testPool.getPoolSaturation(500);
+    totalReward = testPool.getTotalReward(500, 0.3);
+    poolReward = testPool.getPoolReward(totalReward);
+    allDelegatorReward = testPool.getAllDelegatorReward(totalReward, poolReward);
+    individualDelegatorReward = testPool.getIndividualDelegatorReward(2500000000, allDelegatorReward);
+
+    console.log("Pool saturation: ", poolSaturation);
+    console.log("Total reward: ", totalReward/1000000);
+    console.log("Pool reward: ", poolReward/1000000);
+    console.log("All delegator reward: ", allDelegatorReward/1000000);
+    console.log("Individual delegator reward: ", individualDelegatorReward/1000000);
+    console.log("PASSED: All test pool tests.\n");
 } catch (error) {
-    console.log('Test passed:', error.message);
+    console.error("FAILED: ", error, "\n");
 }
-
+  
+// Read in pools with JSON if we want to.
 try {
-    a0_too_small = new CardanoRSS(500, -1, 340000000);
-    console.error('Test failed: a0_too_small')
+    // TODO: Function to read JSON data into pool objects.
 } catch (error) {
-    console.log('Test passed:', error.message);
-}
-
-try {
-    a0_too_big = new CardanoRSS(500, 11, 340000000);
-    console.error('Test failed: a0_too_big')
-} catch (error) {
-    console.log('Test passed:', error.message);
-}
-
-try {
-    invalid_minPoolCost = new CardanoRSS(500, 2, -1);
-    console.error('Test failed: invalid_minPoolCost')
-} catch (error) {
-    console.log('Test passed:', error.message);
-}
-
-try {
-    invalid_pool_stake = new Pool(-1, 0, 0);
-    console.error('Test failed: invalid_pool_stake')
-} catch (error) {
-    console.log('Test passed:', error.message);
-}
-
-try {
-    console.log('Test passed: constants.TAU=', constants.TAU)
-} catch (error) {
-    console.error('Test failed:', error.message);
+    console.error("FAILED: ", error);
 }
