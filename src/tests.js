@@ -4,9 +4,9 @@ const constants = require('./constants.js');
 
 // Test if pool methods are working correctly.
 try {
-    testPool = new Pool(1000000000000, 10000000000, 100, 0.01, 340000000);          // TODO: Test with verfiable parameters.
+    testPool = new Pool(60000000000000, 10000000000, 100, 0.01, 340000000);          // TODO: Test with verfiable parameters.
     poolSaturation = testPool.getPoolSaturation(500);
-    totalReward = testPool.getTotalReward(500, 0.3);
+    totalReward = testPool.getTotalReward(500, 0.3, 5000);
     poolReward = testPool.getPoolReward(totalReward);
     allDelegatorReward = testPool.getAllDelegatorReward(totalReward, poolReward);
     individualDelegatorReward = testPool.getIndividualDelegatorReward(2500000000, allDelegatorReward);
