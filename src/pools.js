@@ -37,27 +37,33 @@ class Pool {
         const poolSaturation  = (this.totalActiveStake/1000000)/saturationLevel;
         return poolSaturation;
     }
+    
 
     /**
      * Calculates the total reward earned by the pool.
      * @param {number} k - The desired number of pools set by the k parameter.
      * @param {number} a0 - The pledge influence factor set by the a0 parameter.
-     * @returns {number} The total reward earned by the pool in lovelaces.
+     * @param {number} R - Total available rewards in a given block in ADA.
+     * @returns {number} The total reward earned by this pool in lovelaces.
      */
-    getTotalReward(k, a0) {
-        // TODO: Needs to be verified
-        // PRETTY SURE THIS IS VERY WRONG.  NUMBERS ARE OUT OF WHACK.
-        const emissionPerEpoch = constants.RHO*constants.ADA_TOTAL_SUPPLY
-        const allPoolsReward = emissionPerEpoch-(emissionPerEpoch*constants.TAU)
-        
-        const poolStakeEquity = this.totalActiveStake/constants.ADA_TOTAL_ACTIVE_STAKE
-        const poolRewardEquity = poolStakeEquity*allPoolsReward
+    getTotalReward(k, a0, R) {
+        // Calculate the saturation threshold
+        const saturationThreshold = constants.ADA_CIRCULATING_SUPPLY / k;
 
-        const globalSaturationThreshold = poolRewardEquity/k;
-        const totalReward = (poolRewardEquity / (1 + a0)) *
-            (this.totalActiveStake + (this.pledge * a0 * ((this.totalActiveStake - this.pledge * (1 - this.totalActiveStake / globalSaturationThreshold))
-                / globalSaturationThreshold)));
-        return totalReward;
+        // Cap the stake and pledge at the saturation threshold
+        const cappedStake = Math.min(this.totalActiveStake, saturationThreshold);
+        const cappedPledge = Math.min(this.pledge, saturationThreshold);
+
+        // Calculate the rewards based on the capped stake and pledge
+        let totalReward = R * ((cappedStake / constants.ADA_CIRCULATING_SUPPLY) + a0 * ((cappedPledge / cappedStake) - (cappedStake / constants.ADA_CIRCULATING_SUPPLY)));
+
+        // Subtract the Cardano treasury's cut from the rewards
+        totalReward = totalReward * (1 - constants.TAU);
+
+        // Convert to lovelaces
+        totalReward = totalReward * 1000000
+
+        return totalReward;   // The total reward earned by this pool in a given block in lovelaces.
     }
 
     /**
@@ -68,6 +74,8 @@ class Pool {
     getPoolReward(totalReward) {
         // TODO: Needs to be verified
         const poolReward = (this.margin*totalReward) + this.flatFee;
+        if (poolReward > totalReward)
+            return totalReward
         return poolReward;
     }
 
@@ -80,6 +88,8 @@ class Pool {
     getAllDelegatorReward(totalReward, poolReward) {
         // TODO: Needs to be verified
         const allDelegatorReward = totalReward-poolReward;
+        if (allDelegatorReward < 0)
+            return 0
         return allDelegatorReward;
     }
 
